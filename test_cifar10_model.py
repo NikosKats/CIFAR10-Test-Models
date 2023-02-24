@@ -6,6 +6,7 @@ import unittest
 import torch.autograd as autograd
 import matplotlib.pyplot as plt
 
+
 class CIFAR10Model(nn.Module):
     def __init__(self):
         super(CIFAR10Model, self).__init__()
@@ -27,27 +28,6 @@ class CIFAR10Model(nn.Module):
 
 
 class TestCIFAR10Model(unittest.TestCase):
-    # def setUp(self):
-    #     self.batch_size = 128
-    #     self.num_epochs = 2
-    #     self.learning_rate = 0.001
-    #     self.train_acc = []
-    #     self.test_acc = []
-
-    #     self.train_dataset = torchvision.datasets.CIFAR10(root='path/to/data', train=True,
-    #                                                       download=True, transform=transforms.ToTensor())
-    #     self.test_dataset = torchvision.datasets.CIFAR10(root='path/to/data', train=False,
-    #                                                      download=True, transform=transforms.ToTensor())
-    #     self.train_loader = torch.utils.data.DataLoader(self.train_dataset, batch_size=self.batch_size,
-    #                                                     shuffle=True)
-    #     self.test_loader = torch.utils.data.DataLoader(self.test_dataset, batch_size=self.batch_size,
-    #                                                    shuffle=False)
-    #     self.model = CIFAR10Model()
-    #     self.criterion = nn.CrossEntropyLoss()
-    #     self.optimizer = torch.optim.Adam(
-    #         self.model.parameters(), lr=self.learning_rate)
-
-    
 
     def test_model_performance(self):
         # Test that the model's performance is consistent across different hyperparameters
@@ -59,7 +39,8 @@ class TestCIFAR10Model(unittest.TestCase):
             for learning_rate in learning_rates:
                 for n_epochs in num_epochs:
 
-                    print(f"Training with batch_size={batch_size}, learning_rate={learning_rate}, num_epochs={n_epochs}")
+                    print(
+                        f"Training with batch_size={batch_size}, learning_rate={learning_rate}, num_epochs={n_epochs}")
 
                     train_dataset = torchvision.datasets.CIFAR10(root='path/to/data', train=True,
                                                                  download=True, transform=transforms.ToTensor())
@@ -117,15 +98,26 @@ class TestCIFAR10Model(unittest.TestCase):
                                 correct += (predicted == labels).sum().item()
                             test_acc.append(100 * correct / total)
 
-                            print(f'Epoch [{epoch+1}/{num_epochs}], Loss: {loss.item():.4f}, Train Accuracy: {train_acc[-1]:.2f}%, Test Accuracy: {test_acc[-1]:.2f}%')
+                            # Calculate bias and variance
+                            bias = 100 - test_acc[-1]
+                            variance = max(train_acc) - test_acc[-1]
+                            print(
+                                f'Epoch [{epoch+1}/{n_epochs}], Loss: {loss.item():.4f}, Train Accuracy: {train_acc[-1]:.2f}%, Test Accuracy: {test_acc[-1]:.2f}%, Bias: {bias:.2f}%, Variance: {variance:.2f}%')
 
-                    # Plot the train and test accuracy over time
+                    # Plot the train and test accuracy, bias, and variance over time
                     plt.plot(train_acc, label='Train accuracy')
                     plt.plot(test_acc, label='Test accuracy')
+                    plt.plot([0, n_epochs], [100, 100], linestyle='--',
+                             color='gray', label='Chance level')
+                    plt.plot([0, n_epochs], [100-bias, 100-bias],
+                             linestyle='--', color='red', label='Bias')
+                    plt.plot([0, n_epochs], [100-variance, 100-variance],
+                             linestyle='--', color='blue', label='Variance')
                     plt.xlabel('Epoch')
                     plt.ylabel('Accuracy')
                     plt.legend()
                     plt.show()
+
                     # chance level for CIFAR10 is 10%
                     self.assertGreater(test_acc[-1], 10)
                     self.assertLess(train_losses[-1], train_losses[0])
